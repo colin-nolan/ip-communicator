@@ -19,7 +19,7 @@ class Controller:
     """
     IP address communication controller.
     """
-    def __init__(self, communicator: Communicator, period: int=1 * HOUR,  changes_only: bool=True):
+    def __init__(self, communicator: Communicator, period: int=1 * HOUR, changes_only: bool=True):
         """
         Constructor.
         :param communicator: the communicator of the address
@@ -30,6 +30,8 @@ class Controller:
         self.period = period
         self.changes_only = changes_only
         self._scheduler: BaseScheduler = None
+        self.previous_ipv4_address = None
+        self.previous_ipv6_address = None
 
     def start(self, blocking: bool=True):
         """
@@ -57,7 +59,11 @@ class Controller:
         """
         Communicate the IP address.
         """
-        ip = ipgetter.myip()
-        _logger.info(f"IPv4 address found to be: {ip}")
-        self.communicator.send_ipv4(ip)
         # TODO: IPv6
+        ipv4 = ipgetter.myip()
+        _logger.info(f"IPv4 address found to be: {ipv4}")
+        try:
+            if not self.changes_only or ipv4 != self.previous_ipv4_address:
+                self.communicator.send_ipv4(ipv4)
+        finally:
+            self.previous_ipv4_address = ipv4
