@@ -1,6 +1,4 @@
 import logging
-from typing import Dict
-from uuid import uuid4
 
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -16,42 +14,50 @@ SECOND = 1
 MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
 
-SchedulerReference = str
 
-_schedulers: Dict[SchedulerReference, BaseScheduler] = {}
-
-
-def start(communicator: Communicator, period: int=1 * HOUR, blocking: bool=True) -> SchedulerReference:
+class Controller:
     """
-    Starts periodically communicating the IP address.
-    :param communicator: the communicator of the address
-    :param period: the number of milliseconds between each communication
-    :param blocking: whether a call to this method should block
-    :return: reference to the scheduler (will not get to the return if blocking!)
+    IP address communication controller.
     """
-    scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
-    scheduler_reference = uuid4()
-    _schedulers[scheduler_reference] = scheduler
-    scheduler.add_job(run, args=[communicator], trigger="interval", seconds=period, next_run_time=datetime.now())
-    scheduler.start()
-    return scheduler_reference
+    def __init__(self, communicator: Communicator, period: int=1 * HOUR,  changes_only: bool=True):
+        """
+        Constructor.
+        :param communicator: the communicator of the address
+        :param period: the number of milliseconds between each communication
+        :param changes_only: whether to only communicate the IP address if it has changed
+        """
+        self.communicator = communicator
+        self.period = period
+        self.changes_only = changes_only
+        self._scheduler: BaseScheduler = None
 
+    def start(self, blocking: bool=True):
+        """
+        Starts periodically communicating the IP address.
 
-def stop(scheduler_reference: SchedulerReference):
-    """
-    Stops the scheduler with the given reference.
-    :param scheduler_reference: the scheduler's reference
-    """
-    scheduler = _schedulers.pop(scheduler_reference)
-    scheduler.stop()
+        Not thread safe.
+        :param blocking: whether a call to this method should block
+        """
+        scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
+        self._scheduler = scheduler
+        scheduler.add_job(self.run, trigger="interval", seconds=self.period, next_run_time=datetime.now())
+        scheduler.start()
 
+    def stop(self):
+        """
+        Stops the scheduler (if running).
 
-def run(communicator: Communicator):
-    """
-    Communicate the IP address.
-    :param communicator: the IP address communicator.
-    """
-    ip = ipgetter.myip()
-    _logger.info(f"IPv4 address found to be: {ip}")
-    communicator.send_ipv4(ip)
-    # TODO: IPv6
+        Not thread safe.
+        """
+        if self._scheduler:
+            self._scheduler.shutdown()
+            self._scheduler = None
+
+    def run(self):
+        """
+        Communicate the IP address.
+        """
+        ip = ipgetter.myip()
+        _logger.info(f"IPv4 address found to be: {ip}")
+        self.communicator.send_ipv4(ip)
+        # TODO: IPv6
