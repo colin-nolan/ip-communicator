@@ -22,11 +22,11 @@ _schedulers: Dict[SchedulerReference: BaseScheduler] = {}
 
 def start(communicator: Communicator, period: int=1 * HOUR, blocking: bool=True) -> SchedulerReference:
     """
-    TODO
-    :param communicator:
-    :param period:
-    :param blocking:
-    :return:
+    Starts periodically communicating the IP address.
+    :param communicator: the communicator of the address
+    :param period: the number of milliseconds between each communication
+    :param blocking: whether a call to this method should block
+    :return: reference to the scheduler (will not get to the return if blocking!)
     """
     scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
     scheduler_reference = uuid4()
@@ -38,9 +38,8 @@ def start(communicator: Communicator, period: int=1 * HOUR, blocking: bool=True)
 
 def stop(scheduler_reference: SchedulerReference):
     """
-    TODO
-    :param scheduler_reference:
-    :return:
+    Stops the scheduler with the given reference.
+    :param scheduler_reference: the scheduler's reference
     """
     scheduler = _schedulers.pop(scheduler_reference)
     scheduler.stop()
@@ -48,10 +47,10 @@ def stop(scheduler_reference: SchedulerReference):
 
 def run(communicator: Communicator):
     """
-    TODO
-    :param communicator:
-    :return:
+    Communicate the IP address.
+    :param communicator: the IP address communicator.
     """
     ip = ipgetter.myip()
-    _logger.info(f"IP address found to be: {ip}")
+    _logger.info(f"IPv4 address found to be: {ip}")
     communicator.send_ipv4(ip)
+    # TODO: IPv6

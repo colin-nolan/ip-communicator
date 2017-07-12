@@ -17,17 +17,17 @@ class Communicator(metaclass=ABCMeta):
     @staticmethod
     def default_message_generator(ip_address: str) -> str:
         """
-        TODO
-        :param ip_address:
-        :return:
+        Default generator for the IP messages.
+        :param ip_address: the IP address
+        :return: the message generated from the given IP address
         """
         return ip_address
 
     def __init__(self, ipv4_message_generator: MessageGenerator=None, ipv6_message_generator: MessageGenerator=None):
         """
-        TODO
-        :param ipv4_message_generator:
-        :param ipv6_message_generator:
+        Constructor.
+        :param ipv4_message_generator: generator for messages to send relating the machines IPv4 address
+        :param ipv6_message_generator: generator for messages to send relating the machines IPv6 address
         """
         self.ipv4_message_generator = ipv4_message_generator if ipv4_message_generator \
             else Communicator.default_message_generator
@@ -52,14 +52,14 @@ class Communicator(metaclass=ABCMeta):
 
     def _send_ipv4_message(self, message: str):
         """
-        TODO
-        :param message:
-        :return:
+        Sends the IPv4 related message.
+        :param message: the message to send
+        :raises CommunicationException: if the IP address could not be sent
         """
 
     def _send_ipv6_message(self, message: str):
         """
-        TODO
-        :param message:
-        :return:
+        Sends the IPv6 related message.
+        :param message: the message to send
+        :raises CommunicationException: if the IP address could not be sent
         """
