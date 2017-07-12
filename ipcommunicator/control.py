@@ -2,6 +2,7 @@ import logging
 from typing import Dict
 from uuid import uuid4
 
+from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -11,13 +12,13 @@ import ipgetter
 
 _logger = logging.getLogger(__name__)
 
-SECOND = 1 * 1000
+SECOND = 1
 MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
 
 SchedulerReference = str
 
-_schedulers: Dict[SchedulerReference: BaseScheduler] = {}
+_schedulers: Dict[SchedulerReference, BaseScheduler] = {}
 
 
 def start(communicator: Communicator, period: int=1 * HOUR, blocking: bool=True) -> SchedulerReference:
@@ -31,7 +32,7 @@ def start(communicator: Communicator, period: int=1 * HOUR, blocking: bool=True)
     scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
     scheduler_reference = uuid4()
     _schedulers[scheduler_reference] = scheduler
-    scheduler.add_job(run, args=[communicator], trigger="interval", seconds=period)
+    scheduler.add_job(run, args=[communicator], trigger="interval", seconds=period, next_run_time=datetime.now())
     scheduler.start()
     return scheduler_reference
 
