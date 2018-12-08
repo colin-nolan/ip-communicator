@@ -19,15 +19,15 @@ class Controller:
     """
     IP address communication controller.
     """
-    def __init__(self, communicator: Communicator, period: int=1 * HOUR, changes_only: bool=True):
+    def __init__(self, communicator: Communicator, period_in_seconds: int= 1 * HOUR, changes_only: bool=True):
         """
         Constructor.
         :param communicator: the communicator of the address
-        :param period: the number of milliseconds between each communication
+        :param period_in_seconds: the number of seconds between each communication
         :param changes_only: whether to only communicate the IP address if it has changed
         """
         self.communicator = communicator
-        self.period = period
+        self.period = period_in_seconds
         self.changes_only = changes_only
         self._scheduler: BaseScheduler = None
         self.previous_ipv4_address = None
