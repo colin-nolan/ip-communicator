@@ -1,4 +1,6 @@
 import logging
+from ipaddress import IPv4Address, ip_address, IPv6Address
+from typing import Callable
 
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -15,11 +17,31 @@ MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
 
 
+def ipv4_getter() -> IPv4Address:
+    """
+    Gets the host's IPv4 address.
+    :return: the host's IPv4 address.
+    """
+    return ip_address(ipgetter.myip())
+
+
+def ipv6_getter() -> IPv6Address:
+    """
+    Gets the host's IPv6 address.
+    :return: the host's IPv6 address.
+    """
+    raise NotImplementedError()
+
+
 class Controller:
     """
     IP address communication controller.
     """
-    def __init__(self, communicator: Communicator, period_in_seconds: int= 1 * HOUR, changes_only: bool=True):
+    DEFAULT_PERIOD_IN_SECONDS = int(0.25 * HOUR)
+
+    def __init__(self, communicator: Communicator, period_in_seconds: int=DEFAULT_PERIOD_IN_SECONDS,
+                 changes_only: bool=True, *, ipv4_getter: Callable[[], IPv4Address]=ipv4_getter,
+                 ipv6_getter: Callable[[], IPv6Address]=ipv6_getter):
         """
         Constructor.
         :param communicator: the communicator of the address
@@ -29,9 +51,11 @@ class Controller:
         self.communicator = communicator
         self.period = period_in_seconds
         self.changes_only = changes_only
-        self._scheduler: BaseScheduler = None
         self.previous_ipv4_address = None
         self.previous_ipv6_address = None
+        self.ipv4_getter = ipv4_getter
+        self.ipv6_getter = ipv6_getter
+        self._scheduler: BaseScheduler = None
 
     def start(self, blocking: bool=True):
         """
@@ -60,7 +84,7 @@ class Controller:
         Communicate the IP address.
         """
         # TODO: IPv6
-        ipv4 = ipgetter.myip()
+        ipv4 = self.ipv4_getter()
         _logger.info(f"IPv4 address found to be: {ipv4}")
         try:
             if not self.changes_only or ipv4 != self.previous_ipv4_address:
