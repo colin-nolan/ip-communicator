@@ -1,21 +1,20 @@
-from ipaddress import IPv4Address, ip_address
+from ipaddress import ip_address
 import unittest
 
 from ipcommunicator.control import Controller, ipv4_getter, ipv6_getter
 from ipcommunicator.tests._dummy_communicator import DummyCommunicator
-from ipcommunicator.tests.helpers import is_internet_connection
-
-TEST_IPV4_ADDRESS_1 = IPv4Address("192.168.168.192")
-TEST_IPV4_ADDRESS_2 = IPv4Address("192.168.192.168")
+from ipcommunicator.tests._helpers import is_internet_connection, TEST_IPV4_ADDRESS_1, TEST_IPV4_ADDRESS_2
 
 
 class TestIpv4Getter(unittest.TestCase):
     """
     Tests for `ipv4_getter`.
     """
-    def test_getter(self):
+    def setUp(self):
         if not is_internet_connection():
             self.skipTest("No Internet connection")
+
+    def test_getter(self):
         ipv4_getter()
 
 
@@ -24,9 +23,11 @@ class TestIpv6Getter(unittest.TestCase):
     """
     Tests for `ipv6_getter`.
     """
-    def test_getter(self):
+    def setUp(self):
         if not is_internet_connection():
             self.skipTest("No Internet connection")
+
+    def test_getter(self):
         ipv6_getter()
 
 
