@@ -93,11 +93,12 @@ def _set_log_level(level: int):
                        f"more -{VERBOSITY_SHORT_PARAMETER}")
 
 
-def main(cli_arguments: List[str]):
+def main(cli_arguments: List[str], blocking: bool=True):
     """
     Entrypoint.
     :param cli_arguments: arguments passed in via the CLI
-    :raises SystemExit: always raised
+    :param blocking: whether the controller should block
+    :return: the controller
     """
     cli_configuration = parse_cli_configuration(cli_arguments)
 
@@ -106,7 +107,8 @@ def main(cli_arguments: List[str]):
 
     communicator = COMMUNICATOR_FACTORY_MAP[cli_configuration.communicator_name]()
     controller = Controller(communicator, period_in_seconds=cli_configuration.check_period, changes_only=True)
-    controller.start(blocking=True)
+    controller.start(blocking=blocking)
+    return controller
 
 
 def entrypoint():

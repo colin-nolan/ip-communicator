@@ -2,13 +2,15 @@ import os
 
 from logzero import logger
 from slackclient import SlackClient
-import logging
 
 from ipcommunicator.communicator import Communicator, CommunicationError
+from ipcommunicator.meta import PACKAGE_NAME
 
 SLACK_TOKEN_ENVIRONMENT_PARAMETER_NAME = "SLACK_TOKEN"
 SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME = "SLACK_CHANNEL"
 SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME = "SLACK_USERNAME"
+
+DEFAULT_SLACK_USERNAME = PACKAGE_NAME
 
 _SLACK_CLIENT_POST_MESSAGE = "chat.postMessage"
 
@@ -36,10 +38,8 @@ class SlackCommunicator(Communicator):
             raise ValueError(f"Slack channel must either be given as argument or set using the environment variable "
                              f"{SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME}")
 
-        self.username = username if username is not None else os.environ.get(SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME)
-        if self.username is None:
-            raise ValueError(f"Slack username must either be given as argument or set using the environment variable "
-                             f"{SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME}")
+        self.username = username if username is not None else \
+            os.environ.get(SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME, DEFAULT_SLACK_USERNAME)
 
         self._slack_client = SlackClient(token)
 

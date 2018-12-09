@@ -11,12 +11,9 @@ from ipcommunicator.communicators.slack import SlackCommunicator, SLACK_TOKEN_EN
 from ipcommunicator.tests._helpers import is_internet_connection, TEST_IPV4_ADDRESS_1
 
 
-DEFAULT_SLACK_USERNAME = "user123"
-
-
-class TestSlackCommunicator(unittest.TestCase):
+class SlackBasedTest(unittest.TestCase):
     """
-    Tests for `SlackCommunicator`.
+    TODO
     """
     @property
     def slack_channel_id(self):
@@ -35,7 +32,7 @@ class TestSlackCommunicator(unittest.TestCase):
 
         self.slack_token = os.environ.get(SLACK_TOKEN_ENVIRONMENT_PARAMETER_NAME)
         self.slack_channel_name = os.environ.get(SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME)
-        self.slack_username = os.environ.get(SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME, DEFAULT_SLACK_USERNAME)
+        self.slack_username = os.environ.get(SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME)
         self._slack_channel_id = None
 
         if self.slack_token is None:
@@ -44,6 +41,47 @@ class TestSlackCommunicator(unittest.TestCase):
             self.skipTest(f"{SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME} is not set")
         self.slack_client = SlackClient(self.slack_token)
 
+    def delete_message(self, message_timestamp: str):
+        """
+        Deletes Slack message in the working channel with the given (assumed unique!) timestamp.
+        :param message_timestamp: timestamp of message to delete
+        """
+        self.slack_client.api_call("chat.delete", channel=self.slack_channel_id, ts=message_timestamp)
+
+    def find_message_with_uuid(self, uuid: str) -> Optional[Dict[str, str]]:
+        """
+        Finds the message in the working channel containing the given UUID.
+        :param uuid: unique substring of message text
+        :return: the message if matched, else `None`
+        """
+        return self.find_message_with_property("text", uuid)
+
+    def find_message_from_user(self, username: str) -> Optional[Dict[str, str]]:
+        """
+        TODO
+        :param username:
+        :return:
+        """
+        return self.find_message_with_property("username", username)
+
+    def find_message_with_property(self, property: str, value: str) -> Optional[Dict[str, str]]:
+        """
+        TODO
+        :param property:
+        :param value:
+        :return:
+        """
+        history = self.slack_client.api_call("channels.history", channel=self.slack_channel_id)
+        for message in history["messages"]:
+            if value in message.get(property, ""):
+                return message
+        return None
+
+
+class TestSlackCommunicator(SlackBasedTest):
+    """
+    Tests for `SlackCommunicator`.
+    """
     def test_send_ipv4(self):
         communicator = SlackCommunicator(self.slack_token, self.slack_channel_name, self.slack_username)
         self._test_send_ipv4(communicator)
@@ -56,13 +94,6 @@ class TestSlackCommunicator(unittest.TestCase):
     def test_send_ipv6(self):
         raise NotImplementedError()
 
-    def _delete_message(self, message_timestamp: str):
-        """
-        Deletes Slack message in the working channel with the given (assumed unique!) timestamp.
-        :param message_timestamp: timestamp of message to delete
-        """
-        self.slack_client.api_call("chat.delete", channel=self.slack_channel_id, ts=message_timestamp)
-
     def _test_send_ipv4(self, communicator: SlackCommunicator):
         """
         TODO
@@ -73,22 +104,9 @@ class TestSlackCommunicator(unittest.TestCase):
         communicator.ipv4_message_generator = lambda _: unique_message
         try:
             communicator.send_ipv4(TEST_IPV4_ADDRESS_1)
-            self.assertIsNotNone(self._find_message_with_uuid(unique_message))
+            self.assertIsNotNone(self.find_message_with_uuid(unique_message))
         finally:
-            message = self._find_message_with_uuid(unique_message)
+            message = self.find_message_with_uuid(unique_message)
             if message is not None:
-                self._delete_message(message["ts"])
-
-    def _find_message_with_uuid(self, uuid: str) -> Optional[Dict[str, str]]:
-        """
-        Finds the message in the working channel containing the given UUID.
-        :param uuid: unique substring of message text
-        :return: the message if matched, else `None`
-        """
-        history = self.slack_client.api_call("channels.history", channel=self.slack_channel_id)
-        for message in history["messages"]:
-            if uuid in message["text"]:
-                return message
-        return None
-
+                self.delete_message(message["ts"])
 

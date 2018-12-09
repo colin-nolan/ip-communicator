@@ -1,15 +1,14 @@
-import logging
+from datetime import datetime
 from ipaddress import IPv4Address, ip_address, IPv6Address
 from typing import Callable
 
-from datetime import datetime
+import ipgetter
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from logzero import logger
 
 from ipcommunicator.communicator import Communicator
-import ipgetter
 
 SECOND = 1
 MINUTE = 60 * SECOND
