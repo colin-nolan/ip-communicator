@@ -1,6 +1,7 @@
 FROM ipcommunicator
 
 RUN pip --disable-pip-version-check install -U coverage \
-    && pip --disable-pip-version-check install -r test-requirements.txt
+    && pip --disable-pip-version-check install -r test-requirements.txt \
+    && pip --disable-pip-version-check install -r requirements.txt
 
 CMD ["./run-tests.sh"]
