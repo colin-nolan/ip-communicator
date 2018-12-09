@@ -7,6 +7,7 @@ scriptDirectory="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 docker build -t ipcommunicator -f Dockerfile .
 docker build -t ipcommunicator-tests -f Dockerfile.test .
 docker run  --rm -it -v "${scriptDirectory}":/ip-communicator \
+    -e SLACK_TOKEN -e SLACK_CHANNEL -e SLACK_USERNAME \
     --entrypoint=bash \
     ipcommunicator-tests run-tests.sh
 
