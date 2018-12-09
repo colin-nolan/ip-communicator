@@ -3,6 +3,7 @@
 set -euf -o pipefail
 
 scriptDirectory="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${scriptDirectory}"
 
 docker build -t ipcommunicator -f Dockerfile .
 docker build -t ipcommunicator-tests -f Dockerfile.test .

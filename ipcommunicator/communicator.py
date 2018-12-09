@@ -3,9 +3,9 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Callable, Union
 
 
-class CommunicationException(RuntimeError):
+class CommunicationError(RuntimeError):
     """
-    Raised if an exception occurs when communicating.
+    Raised if an error occurs when communicating.
     """
 
 

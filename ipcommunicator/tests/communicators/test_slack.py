@@ -6,12 +6,10 @@ import unittest
 
 from slackclient import SlackClient
 
-from ipcommunicator.communicators.slack import SlackCommunicator
+from ipcommunicator.communicators.slack import SlackCommunicator, SLACK_TOKEN_ENVIRONMENT_PARAMETER_NAME, \
+    SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME, SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME
 from ipcommunicator.tests._helpers import is_internet_connection, TEST_IPV4_ADDRESS_1
 
-SLACK_TOKEN_ENVIRONMENT_PARAMETER_NAME = "SLACK_TOKEN"
-SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME = "SLACK_CHANNEL"
-SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME = "SLACK_USERNAME"
 
 DEFAULT_SLACK_USERNAME = "user123"
 
@@ -44,19 +42,15 @@ class TestSlackCommunicator(unittest.TestCase):
             self.skipTest(f"{SLACK_TOKEN_ENVIRONMENT_PARAMETER_NAME} is not set")
         if self.slack_channel_name is None:
             self.skipTest(f"{SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME} is not set")
-        self.communicator = SlackCommunicator(self.slack_token, self.slack_channel_name, self.slack_username)
         self.slack_client = SlackClient(self.slack_token)
 
     def test_send_ipv4(self):
-        unique_message = f"{self.__class__.__name__} - {uuid4()}"
-        self.communicator.ipv4_message_generator = lambda _: unique_message
-        try:
-            self.communicator.send_ipv4(TEST_IPV4_ADDRESS_1)
-            self.assertIsNotNone(self._find_message_with_uuid(unique_message))
-        finally:
-            message = self._find_message_with_uuid(unique_message)
-            if message is not None:
-                self._delete_message(message["ts"])
+        communicator = SlackCommunicator(self.slack_token, self.slack_channel_name, self.slack_username)
+        self._test_send_ipv4(communicator)
+
+    def test_send_ipv4_using_environment_variables(self):
+        communicator = SlackCommunicator()
+        self._test_send_ipv4(communicator)
 
     @unittest.skip("IPv6 support not implemented")
     def test_send_ipv6(self):
@@ -69,6 +63,22 @@ class TestSlackCommunicator(unittest.TestCase):
         """
         self.slack_client.api_call("chat.delete", channel=self.slack_channel_id, ts=message_timestamp)
 
+    def _test_send_ipv4(self, communicator: SlackCommunicator):
+        """
+        TODO
+        :param communicator:
+        :return:
+        """
+        unique_message = f"{self.__class__.__name__} - {uuid4()}"
+        communicator.ipv4_message_generator = lambda _: unique_message
+        try:
+            communicator.send_ipv4(TEST_IPV4_ADDRESS_1)
+            self.assertIsNotNone(self._find_message_with_uuid(unique_message))
+        finally:
+            message = self._find_message_with_uuid(unique_message)
+            if message is not None:
+                self._delete_message(message["ts"])
+
     def _find_message_with_uuid(self, uuid: str) -> Optional[Dict[str, str]]:
         """
         Finds the message in the working channel containing the given UUID.
@@ -80,3 +90,5 @@ class TestSlackCommunicator(unittest.TestCase):
             if uuid in message["text"]:
                 return message
         return None
+
+

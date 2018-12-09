@@ -3,4 +3,5 @@ branch = True
 source = .
 omit =
     ipcommunicator/tests/*
+    subrepos/*
 parallel = True

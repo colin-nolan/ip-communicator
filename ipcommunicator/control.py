@@ -6,11 +6,10 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
+from logzero import logger
 
 from ipcommunicator.communicator import Communicator
 import ipgetter
-
-_logger = logging.getLogger(__name__)
 
 SECOND = 1
 MINUTE = 60 * SECOND
@@ -37,13 +36,13 @@ class Controller:
     """
     IP address communication controller.
     """
-    DEFAULT_PERIOD_IN_SECONDS = int(0.25 * HOUR)
+    DEFAULT_PERIOD_IN_SECONDS = 0.25 * HOUR
 
     @property
     def started(self):
         return self._scheduler is not None
 
-    def __init__(self, communicator: Communicator, period_in_seconds: int=DEFAULT_PERIOD_IN_SECONDS,
+    def __init__(self, communicator: Communicator, period_in_seconds: float=DEFAULT_PERIOD_IN_SECONDS,
                  changes_only: bool=True, *, ipv4_getter: Callable[[], IPv4Address]=ipv4_getter,
                  ipv6_getter: Callable[[], IPv6Address]=ipv6_getter):
         """
@@ -90,9 +89,10 @@ class Controller:
         """
         # TODO: IPv6
         ipv4 = self.ipv4_getter()
-        _logger.info(f"IPv4 address found to be: {ipv4}")
+        logger.info(f"IPv4 address: {ipv4}")
         try:
             if not self.changes_only or ipv4 != self.previous_ipv4_address:
+                logger.info(f"IPv4 address has changed")
                 self.communicator.send_ipv4(ipv4)
         finally:
             self.previous_ipv4_address = ipv4
