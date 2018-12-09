@@ -6,6 +6,7 @@ import unittest
 
 from slackclient import SlackClient
 
+from ipcommunicator.communicator import CommunicationError
 from ipcommunicator.communicators.slack import SlackCommunicator, SLACK_TOKEN_ENVIRONMENT_PARAMETER_NAME, \
     SLACK_CHANNEL_ENVIRONMENT_PARAMETER_NAME, SLACK_USERNAME_ENVIRONMENT_PARAMETER_NAME
 from ipcommunicator.tests._helpers import is_internet_connection, TEST_IPV4_ADDRESS_1
@@ -82,6 +83,10 @@ class TestSlackCommunicator(SlackBasedTest):
     """
     Tests for `SlackCommunicator`.
     """
+    def test_send_with_invalid_slack_token(self):
+        communicator = SlackCommunicator("invalid-token", self.slack_channel_name, self.slack_username)
+        self.assertRaises(CommunicationError, self._test_send_ipv4, communicator)
+
     def test_send_ipv4(self):
         communicator = SlackCommunicator(self.slack_token, self.slack_channel_name, self.slack_username)
         self._test_send_ipv4(communicator)
@@ -95,11 +100,6 @@ class TestSlackCommunicator(SlackBasedTest):
         raise NotImplementedError()
 
     def _test_send_ipv4(self, communicator: SlackCommunicator):
-        """
-        TODO
-        :param communicator:
-        :return:
-        """
         unique_message = f"{self.__class__.__name__} - {uuid4()}"
         communicator.ipv4_message_generator = lambda _: unique_message
         try:
