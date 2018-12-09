@@ -6,7 +6,7 @@ _Monitors and communicates changes of a machine's public IP address_
 
 
 ## Purpose
-To monitor a machine's public IP address and to communicate changes to it using a communicator plugin. 
+To monitor a machine's public IP address and to communicate changes to it using a communicator. 
 
 Similar to a DDNS client but not coupled to DDNS.
 
