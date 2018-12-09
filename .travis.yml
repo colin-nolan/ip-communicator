@@ -1,0 +1,19 @@
+language: python
+
+python:
+  - 3.6
+
+services:
+  - docker
+
+before_install:
+  - pip install codecov
+
+install:
+  -
+
+script:
+  - ./run-tests-in-docker.sh
+
+after_success:
+  - codecov
