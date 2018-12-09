@@ -1,5 +1,6 @@
 from ipaddress import ip_address
 import unittest
+from threading import Thread
 
 from ipcommunicator.control import Controller, ipv4_getter, ipv6_getter
 from ipcommunicator.tests._dummy_communicator import DummyCommunicator
@@ -60,6 +61,41 @@ class TestController(unittest.TestCase):
         self.controller.run()
         self.assertEqual(1, len(self.communicator.sent_ipv4_messages))
         self.assertEqual(TEST_IPV4_ADDRESS_2, ip_address(self.communicator.sent_ipv4_messages[0]))
+
+    def test_start_non_blocking(self):
+        try:
+            self.controller.start(blocking=False)
+            self.assertTrue(self.controller.started)
+            self.communicator.message_event.wait(timeout=5)
+            self.assertEqual(1, len(self.communicator.sent_ipv4_messages))
+            self.assertEqual(TEST_IPV4_ADDRESS_1, ip_address(self.communicator.sent_ipv4_messages[0]))
+        finally:
+            self.controller.stop()
+        self.assertFalse(self.controller.started)
+
+    def test_start_blocking(self):
+        try:
+            Thread(target=self.controller.start, args=(True, )).start()
+            self.communicator.message_event.wait(timeout=5)
+            self.assertTrue(self.controller.started)
+            self.assertEqual(1, len(self.communicator.sent_ipv4_messages))
+            self.assertEqual(TEST_IPV4_ADDRESS_1, ip_address(self.communicator.sent_ipv4_messages[0]))
+        finally:
+            self.controller.stop()
+        self.assertFalse(self.controller.started)
+
+    def test_start_when_started(self):
+        try:
+            self.controller.start(blocking=False)
+            self.controller.start(blocking=False)
+        finally:
+            self.controller.stop()
+        self.assertFalse(self.controller.started)
+
+    def test_stop_when_not_started(self):
+        assert not self.controller.started
+        self.controller.stop()
+        self.assertFalse(self.controller.started)
 
 
 if __name__ == "__main__":

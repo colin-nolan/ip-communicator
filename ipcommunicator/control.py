@@ -39,6 +39,10 @@ class Controller:
     """
     DEFAULT_PERIOD_IN_SECONDS = int(0.25 * HOUR)
 
+    @property
+    def started(self):
+        return self._scheduler is not None
+
     def __init__(self, communicator: Communicator, period_in_seconds: int=DEFAULT_PERIOD_IN_SECONDS,
                  changes_only: bool=True, *, ipv4_getter: Callable[[], IPv4Address]=ipv4_getter,
                  ipv6_getter: Callable[[], IPv6Address]=ipv6_getter):
@@ -64,10 +68,11 @@ class Controller:
         Not thread safe.
         :param blocking: whether a call to this method should block
         """
-        scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
-        self._scheduler = scheduler
-        scheduler.add_job(self.run, trigger="interval", seconds=self.period, next_run_time=datetime.now())
-        scheduler.start()
+        if not self.started:
+            scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
+            self._scheduler = scheduler
+            scheduler.add_job(self.run, trigger="interval", seconds=self.period, next_run_time=datetime.now())
+            scheduler.start()
 
     def stop(self):
         """
@@ -75,7 +80,7 @@ class Controller:
 
         Not thread safe.
         """
-        if self._scheduler:
+        if self.started:
             self._scheduler.shutdown()
             self._scheduler = None
 
