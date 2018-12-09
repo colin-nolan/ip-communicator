@@ -1,5 +1,6 @@
 import os
 import unittest
+from time import sleep
 from uuid import uuid4
 
 from capturewrap import CaptureWrapBuilder
@@ -45,6 +46,7 @@ class TestCli(SlackBasedTest):
                 message = self.find_message_from_user(username)
                 if message is not None:
                     break
+                sleep(0.2 * retries)
                 retries += 1
             self.assertNotEqual(10, retries)
         finally:
